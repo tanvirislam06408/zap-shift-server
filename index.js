@@ -34,7 +34,7 @@ async function run() {
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
-    await client.close();
+    // await client.close();
   }
 }
 run().catch(console.dir);
@@ -50,6 +50,38 @@ app.get('/', (req, res) => {
 app.get('/api', (req, res) => {
   res.json({ message: 'This is your API endpoint.' });
 });
+
+
+// POST route to create a new parcel
+app.post('/api/parcel', async (req, res) => {
+  try {
+    const { parcelName, parcelType, senderDistrict, receiverDistrict, cost, createdBy } = req.body;
+
+    // Prepare data for insertion
+    const parcelData = {
+      parcelName,
+      parcelType,
+      senderDistrict,
+      receiverDistrict,
+      cost,
+      createdAt: new Date(), // Use the current timestamp
+      createdBy, // user info
+    };
+
+    // Insert the new parcel into the 'parcels' collection
+    const result = await db.collection('parcels').insertOne(parcelData);
+
+    // Respond with success
+    res.status(201).json({
+      message: 'Parcel created successfully!',
+      parcel: result.ops[0], // The created parcel object
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
 
 // Start the server
 app.listen(PORT, () => {
